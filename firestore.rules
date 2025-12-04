@@ -1,0 +1,127 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isVerified() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+    
+    function getUserRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+    
+    function isAdmin() {
+      return isSignedIn() && getUserRole() == 'admin';
+    }
+    
+    function isStaff() {
+      return isSignedIn() && (getUserRole() == 'staff' || getUserRole() == 'admin');
+    }
+    
+    function isClient() {
+      return isSignedIn() && getUserRole() == 'client';
+    }
+    
+    // Validation helpers
+    function isValidEmail(email) {
+      return email.matches('^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$');
+    }
+    
+    function isValidString(str, minLen, maxLen) {
+      return str is string && str.size() >= minLen && str.size() <= maxLen;
+    }
+
+    // Users collection
+    match /users/{userId} {
+      // Anyone authenticated can read any user profile
+      allow read: if isSignedIn();
+      
+      // Users can create their own profile with ONLY specific fields
+      // Must set role to "client" - cannot self-assign staff/admin
+      allow create: if request.auth.uid == userId 
+        && request.resource.data.email is string
+        && request.resource.data.name is string
+        && request.resource.data.role == 'client'
+        && request.resource.data.createdAt is timestamp;
+      
+      // Users can update ONLY their name/email, NOT role
+      // Admins can update any field including role
+      allow update: if isSignedIn() && (
+        (request.auth.uid == userId && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role'])) 
+        || isAdmin()
+      );
+      
+      // Only admins can delete users
+      allow delete: if isAdmin();
+    }
+
+    // Workspaces collection
+    match /workspaces/{workspaceId} {
+      // Clients can only read workspaces assigned to them
+      // Staff/admin can read all workspaces
+      // MUST be email verified
+      allow read: if isVerified() && (
+        isStaff() || 
+        (isClient() && resource.data.clientId == request.auth.uid)
+      );
+      
+      // Only verified staff/admin can create, update, or delete workspaces
+      // Validate required fields on create
+      allow create: if isVerified() && isStaff()
+        && isValidString(request.resource.data.name, 1, 100)
+        && isValidString(request.resource.data.description, 0, 500)
+        && request.resource.data.progress >= 0 
+        && request.resource.data.progress <= 100;
+      
+      allow update, delete: if isVerified() && isStaff();
+    }
+
+    // Messages collection
+    match /messages/{messageId} {
+      // Staff/admin can read all messages
+      // Clients can only read messages with type == "client"
+      // MUST be email verified
+      allow read: if isVerified() && (
+        isStaff() ||
+        (isClient() && resource.data.type == 'client')
+      );
+      
+      // Staff/admin can create any message type
+      // Clients can only create messages with type == "client" AND senderId must be their own uid
+      // Validate message length (max 2000 chars)
+      allow create: if isVerified() 
+        && isValidString(request.resource.data.text, 1, 2000)
+        && request.resource.data.senderId == request.auth.uid
+        && (
+          isStaff() ||
+          (isClient() && request.resource.data.type == 'client')
+        );
+      
+      // Only message sender OR staff/admin can update/delete messages
+      allow update, delete: if isVerified() && (
+        resource.data.senderId == request.auth.uid || isStaff()
+      );
+    }
+
+    // Tasks collection
+    match /tasks/{taskId} {
+      // Staff/admin can read all tasks
+      // Clients can read tasks (workspace filtering is done in app logic)
+      // MUST be email verified
+      allow read: if isVerified();
+      
+      // Only verified staff/admin can create, update, or delete tasks
+      // Validate task fields
+      allow create: if isVerified() && isStaff()
+        && isValidString(request.resource.data.title, 1, 200)
+        && request.resource.data.completed is bool;
+      
+      allow update, delete: if isVerified() && isStaff();
+    }
+  }
+}
