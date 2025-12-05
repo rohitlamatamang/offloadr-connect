@@ -21,17 +21,17 @@ export default function Navbar({ title }: NavbarProps) {
     }
   };
   return (
-    <header className="sticky top-0 z-30 hidden border-b border-slate-800 bg-slate-900/95 backdrop-blur-sm lg:block">
+    <header className="sticky top-0 z-30 hidden border-b border-gray-200 bg-white/95 backdrop-blur-sm lg:block shadow-sm">
       <div className="flex h-16 items-center justify-between px-6">
         <div className="flex items-center gap-4">
-          <h1 className="text-lg font-semibold text-slate-50">
+          <h1 className="text-lg font-semibold text-[#1A1A1A]">
             {title || "Dashboard"}
           </h1>
         </div>
 
         <div className="flex items-center gap-4">
           {/* Notifications */}
-          <button className="relative flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-800 hover:text-slate-50">
+          <button className="relative flex h-9 w-9 items-center justify-center rounded-lg text-gray-600 transition-colors hover:bg-gray-100">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
@@ -46,7 +46,7 @@ export default function Navbar({ title }: NavbarProps) {
                 d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"
               />
             </svg>
-            <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-indigo-500 ring-2 ring-slate-900" />
+            <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-[#FF4D28] ring-2 ring-white" />
           </button>
 
           {/* User menu */}
@@ -54,15 +54,15 @@ export default function Navbar({ title }: NavbarProps) {
             <div className="flex items-center gap-3 rounded-lg px-2 py-1.5">
               <Avatar name={appUser?.name || appUser?.email || "User"} size="sm" />
               <div className="flex flex-col items-start">
-                <span className="text-sm font-medium text-slate-200">
+                <span className="text-sm font-medium text-[#1A1A1A]">
                   {appUser?.name || appUser?.email}
                 </span>
-                <span className="text-xs text-slate-400">{appUser?.role}</span>
+                <span className="text-xs text-[#FF4D28]">{appUser?.role}</span>
               </div>
             </div>
             <button
               onClick={handleLogout}
-              className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-800 hover:text-red-400"
+              className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-600 transition-colors hover:bg-red-50 hover:text-red-600"
               title="Sign out"
             >
               <svg

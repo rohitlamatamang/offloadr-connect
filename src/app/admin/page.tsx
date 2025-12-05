@@ -8,6 +8,7 @@ import AppShell from "@/components/layout/AppShell";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Card from "@/components/ui/Card";
+import LoadingScreen from "@/components/ui/LoadingScreen";
 import { collection, addDoc, serverTimestamp, getDocs, doc, deleteDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useWorkspaces } from "@/hooks/useWorkspaces";
@@ -181,11 +182,7 @@ export default function AdminPage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center text-slate-300">
-        Loading...
-      </div>
-    );
+    return <LoadingScreen message="Loading admin panel" />;
   }
 
   if (!appUser || appUser.role !== "admin") {
@@ -198,14 +195,14 @@ export default function AdminPage() {
     <AppShell title="Admin Panel">
       <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 lg:px-8">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-slate-100">Admin Panel</h1>
-          <p className="mt-1 text-sm text-slate-400">
+          <h1 className="text-3xl font-bold text-[#FF4D28]">Admin Panel</h1>
+          <p className="mt-2 text-sm text-gray-600">
             Create workspaces and assign clients
           </p>
         </div>
 
         <Card>
-          <h2 className="mb-4 text-lg font-semibold text-slate-100">
+          <h2 className="mb-4 text-lg font-semibold text-[#1A1A1A]">
             Create New Workspace
           </h2>
 
@@ -220,7 +217,7 @@ export default function AdminPage() {
             />
 
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-slate-300">
+              <label className="mb-1.5 block text-sm font-medium text-[#1A1A1A]">
                 Description
               </label>
               <textarea
@@ -228,13 +225,13 @@ export default function AdminPage() {
                 required
                 value={workspaceDesc}
                 onChange={(e) => setWorkspaceDesc(e.target.value)}
-                className="w-full rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-[#1A1A1A] placeholder-gray-400 focus:border-[#FF4D28] focus:outline-none focus:ring-2 focus:ring-[#FF4D28]/20"
                 rows={3}
               />
             </div>
 
             <div>
-              <label htmlFor="client" className="mb-1.5 block text-sm font-medium text-slate-300">
+              <label htmlFor="client" className="mb-1.5 block text-sm font-medium text-[#1A1A1A]">
                 Assign to Client
               </label>
               <select
@@ -242,7 +239,7 @@ export default function AdminPage() {
                 required
                 value={selectedClientId}
                 onChange={(e) => setSelectedClientId(e.target.value)}
-                className="w-full rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-2 text-sm text-slate-100 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-[#1A1A1A] focus:border-[#FF4D28] focus:outline-none focus:ring-2 focus:ring-[#FF4D28]/20"
               >
                 <option value="">Select a client...</option>
                 {clients.map((client) => (
@@ -259,8 +256,8 @@ export default function AdminPage() {
             </div>
 
             <div>
-              <label htmlFor="progress" className="mb-1.5 block text-sm font-medium text-slate-300">
-                Initial Progress: {progress}%
+              <label htmlFor="progress" className="mb-1.5 block text-sm font-medium text-[#1A1A1A]">
+                Initial Progress: <span className="text-[#FF4D28]">{progress}%</span>
               </label>
               <input
                 type="range"
@@ -275,11 +272,15 @@ export default function AdminPage() {
             </div>
 
             {error && (
-              <p className="text-sm text-red-400">{error}</p>
+              <div className="rounded-lg bg-red-50 border border-red-200 p-3">
+                <p className="text-sm text-red-700">{error}</p>
+              </div>
             )}
 
             {success && (
-              <p className="text-sm text-green-400">{success}</p>
+              <div className="rounded-lg bg-green-50 border border-green-200 p-3">
+                <p className="text-sm text-green-700">{success}</p>
+              </div>
             )}
 
             <Button type="submit" disabled={isSubmitting} className="w-full">
@@ -289,44 +290,44 @@ export default function AdminPage() {
         </Card>
 
         <Card className="mt-6">
-          <h2 className="mb-4 text-lg font-semibold text-slate-100">
+          <h2 className="mb-4 text-lg font-semibold text-[#1A1A1A]">
             All Workspaces
           </h2>
           <div className="space-y-3">
             {workspacesLoading ? (
-              <p className="text-sm text-slate-400">Loading workspaces...</p>
+              <p className="text-sm text-gray-600">Loading workspaces...</p>
             ) : workspaces.length === 0 ? (
-              <p className="text-sm text-slate-400">No workspaces found</p>
+              <p className="text-sm text-gray-600">No workspaces found</p>
             ) : (
               workspaces.map((workspace) => {
                 const client = users.find((u) => u.id === workspace.clientId);
                 return (
                   <div
                     key={workspace.id}
-                    className="rounded-lg border border-slate-800 bg-slate-900/50 p-4"
+                    className="rounded-lg border border-gray-200 bg-white p-4 hover:border-[#FF4D28]/30 transition-colors"
                   >
                     <div className="mb-3 flex items-start justify-between">
                       <div className="flex-1">
-                        <h3 className="text-sm font-semibold text-slate-200">
+                        <h3 className="text-sm font-semibold text-[#1A1A1A]">
                           {workspace.name}
                         </h3>
-                        <p className="mt-1 text-xs text-slate-400">
+                        <p className="mt-1 text-xs text-gray-600">
                           {workspace.description}
                         </p>
-                        <p className="mt-2 text-xs text-slate-500">
+                        <p className="mt-2 text-xs text-gray-500">
                           Client: {client?.name || "Unknown"} ({client?.email || "N/A"})
                         </p>
                       </div>
                       <button
                         onClick={() => handleDeleteWorkspace(workspace.id, workspace.name)}
-                        className="ml-3 rounded-lg bg-red-500/10 px-3 py-1.5 text-xs font-medium text-red-400 transition hover:bg-red-500/20"
+                        className="ml-3 rounded-lg bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 transition hover:bg-red-100"
                       >
                         Delete
                       </button>
                     </div>
                     <div>
                       <div className="mb-2 flex items-center justify-between text-xs">
-                        <label className="text-slate-400">Progress: {workspace.progress}%</label>
+                        <label className="text-gray-600">Progress: <span className="font-semibold text-[#FF4D28]">{workspace.progress}%</span></label>
                       </div>
                       <input
                         type="range"
@@ -346,28 +347,28 @@ export default function AdminPage() {
         </Card>
 
         <Card className="mt-6">
-          <h2 className="mb-4 text-lg font-semibold text-slate-100">
+          <h2 className="mb-4 text-lg font-semibold text-[#1A1A1A]">
             All Users
           </h2>
           <div className="space-y-2">
             {users.length === 0 ? (
-              <p className="text-sm text-slate-400">No users found</p>
+              <p className="text-sm text-gray-600">No users found</p>
             ) : (
               users.map((user) => (
                 <div
                   key={user.id}
-                  className="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-900/50 p-3"
+                  className="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-3 hover:border-[#FF4D28]/30 transition-colors"
                 >
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-slate-200">{user.name}</p>
-                    <p className="text-xs text-slate-400">{user.email}</p>
+                    <p className="text-sm font-medium text-[#1A1A1A]">{user.name}</p>
+                    <p className="text-xs text-gray-600">{user.email}</p>
                   </div>
                   <div className="flex items-center gap-3">
                     <select
                       value={user.role}
                       onChange={(e) => handleRoleChange(user.id, e.target.value)}
                       disabled={user.id === appUser?.id}
-                      className="rounded-md border border-slate-700 bg-slate-800 px-3 py-1 text-xs text-slate-200 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="rounded-md border border-gray-300 bg-white px-3 py-1 text-xs text-[#1A1A1A] disabled:cursor-not-allowed disabled:opacity-50 focus:border-[#FF4D28] focus:outline-none"
                     >
                       <option value="client">Client</option>
                       <option value="staff">Staff</option>

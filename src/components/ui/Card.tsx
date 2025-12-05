@@ -20,9 +20,9 @@ export default function Card({
 
   return (
     <div
-      className={`rounded-xl border border-slate-800 bg-slate-900/50 shadow-lg shadow-slate-900/60 transition-all ${
+      className={`rounded-xl border border-gray-200 bg-white shadow-sm transition-all ${
         paddingStyles[padding]
-      } ${hover ? "hover:border-slate-700 hover:shadow-xl" : ""} ${className}`}
+      } ${hover ? "hover:border-[#FF4D28]/30 hover:shadow-md" : ""} ${className}`}
     >
       {children}
     </div>

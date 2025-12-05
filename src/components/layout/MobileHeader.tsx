@@ -12,11 +12,11 @@ export default function MobileHeader({
   onMenuClick,
 }: MobileHeaderProps) {
   return (
-    <header className="sticky top-0 z-30 border-b border-slate-800 bg-slate-900/95 px-4 py-3 backdrop-blur-sm lg:hidden">
+    <header className="sticky top-0 z-30 border-b border-gray-200 bg-white/95 px-4 py-3 backdrop-blur-sm lg:hidden shadow-sm">
       <div className="flex items-center gap-3">
         <button
           onClick={onMenuClick}
-          className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-300 transition-colors hover:bg-slate-800 hover:text-slate-50"
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-700 transition-colors hover:bg-gray-100"
           aria-label="Open menu"
         >
           <svg
@@ -35,7 +35,7 @@ export default function MobileHeader({
           </svg>
         </button>
 
-        <h1 className="flex-1 truncate text-base font-semibold text-slate-50">
+        <h1 className="flex-1 truncate text-base font-semibold text-[#1A1A1A]">
           {title}
         </h1>
 

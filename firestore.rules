@@ -118,8 +118,11 @@ service cloud.firestore {
       // Only verified staff/admin can create, update, or delete tasks
       // Validate task fields
       allow create: if isVerified() && isStaff()
-        && isValidString(request.resource.data.title, 1, 200)
-        && request.resource.data.completed is bool;
+        && isValidString(request.resource.data.label, 1, 200)
+        && request.resource.data.completed is bool
+        && request.resource.data.workspaceId is string
+        && request.resource.data.createdBy is string
+        && request.resource.data.createdAt is timestamp;
       
       allow update, delete: if isVerified() && isStaff();
     }

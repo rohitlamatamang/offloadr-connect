@@ -14,28 +14,28 @@ export default function WorkspaceCard({ workspace }: WorkspaceCardProps) {
   return (
     <Link
       href={`/workspace/${workspace.id}`}
-      className="group flex flex-col rounded-2xl border border-slate-800 bg-slate-900/60 p-4 shadow-md shadow-slate-950/70 transition hover:-translate-y-1 hover:border-indigo-500/70 hover:shadow-lg hover:shadow-indigo-900/50"
+      className="group flex flex-col rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition hover:-translate-y-1 hover:border-[#FF4D28] hover:shadow-lg hover:shadow-[#FF4D28]/10"
     >
       <div className="flex items-start justify-between gap-2">
         <div>
-          <h3 className="text-sm font-semibold text-slate-50 sm:text-base">
+          <h3 className="text-sm font-semibold text-[#1A1A1A] sm:text-base">
             {workspace.name || "Untitled workspace"}
           </h3>
           {workspace.description && (
-            <p className="mt-1 text-xs text-slate-400 sm:text-sm">
+            <p className="mt-1 text-xs text-gray-600 sm:text-sm">
               {workspace.description}
             </p>
           )}
         </div>
-        <span className="rounded-full bg-slate-800 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-slate-300">
+        <span className="rounded-full bg-[#FF4D28]/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-[#FF4D28]">
           {progress}% done
         </span>
       </div>
 
       <div className="mt-4">
-        <div className="h-2 w-full overflow-hidden rounded-full bg-slate-800">
+        <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
           <div
-            className="h-full rounded-full bg-indigo-500 transition-all duration-300 group-hover:bg-indigo-400"
+            className="h-full rounded-full bg-gradient-to-r from-[#FF4D28] to-[#FF6B47] transition-all duration-300"
             style={{ width: `${progress}%` }}
           />
         </div>
