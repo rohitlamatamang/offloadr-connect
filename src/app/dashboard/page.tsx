@@ -6,6 +6,7 @@ import { useWorkspaces } from "@/hooks/useWorkspaces";
 import WorkspaceCard from "@/components/workspace/WorkspaceCard";
 import AppShell from "@/components/layout/AppShell";
 import LoadingScreen from "@/components/ui/LoadingScreen";
+import { SectionErrorBoundary } from "@/components/error";
 
 export default function DashboardPage() {
   const { appUser, loading: authLoading } = useAuth();
@@ -65,11 +66,13 @@ export default function DashboardPage() {
             )}
           </div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {workspaces.map((ws) => (
-              <WorkspaceCard key={ws.id} workspace={ws} />
-            ))}
-          </div>
+          <SectionErrorBoundary sectionName="Workspace List">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {workspaces.map((ws) => (
+                <WorkspaceCard key={ws.id} workspace={ws} />
+              ))}
+            </div>
+          </SectionErrorBoundary>
         )}
       </div>
     </AppShell>

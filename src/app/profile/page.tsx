@@ -13,6 +13,7 @@ import ProfileHeader from "@/components/profile/ProfileHeader";
 import ClientProfileForm from "@/components/profile/ClientProfileForm";
 import StaffProfileForm from "@/components/profile/StaffProfileForm";
 import PasswordChangeForm from "@/components/profile/PasswordChangeForm";
+import { SectionErrorBoundary } from "@/components/error";
 import type { ClientType, ContactMethod, CommunicationFrequency, StaffRole } from "@/types/user";
 import { STAFF_ROLES } from "@/lib/staffRoles";
 
@@ -215,29 +216,33 @@ export default function ProfilePage() {
 
                   {/* Staff-specific fields */}
                   {isStaff && (
-                    <StaffProfileForm
-                      staffRole={staffRole}
-                      onStaffRoleChange={setStaffRole}
-                    />
+                    <SectionErrorBoundary sectionName="Staff Profile">
+                      <StaffProfileForm
+                        staffRole={staffRole}
+                        onStaffRoleChange={setStaffRole}
+                      />
+                    </SectionErrorBoundary>
                   )}
 
                   {/* Client-specific fields */}
                   {isClient && (
-                    <ClientProfileForm
-                      clientType={clientType}
-                      companyName={companyName}
-                      phone={phone}
-                      timeZone={timeZone}
-                      preferredContactMethod={preferredContactMethod}
-                      communicationFrequency={communicationFrequency}
-                      isEditing={true}
-                      onClientTypeChange={setClientType}
-                      onCompanyNameChange={setCompanyName}
-                      onPhoneChange={setPhone}
-                      onTimeZoneChange={setTimeZone}
-                      onContactMethodChange={setPreferredContactMethod}
-                      onFrequencyChange={setCommunicationFrequency}
-                    />
+                    <SectionErrorBoundary sectionName="Client Profile">
+                      <ClientProfileForm
+                        clientType={clientType}
+                        companyName={companyName}
+                        phone={phone}
+                        timeZone={timeZone}
+                        preferredContactMethod={preferredContactMethod}
+                        communicationFrequency={communicationFrequency}
+                        isEditing={true}
+                        onClientTypeChange={setClientType}
+                        onCompanyNameChange={setCompanyName}
+                        onPhoneChange={setPhone}
+                        onTimeZoneChange={setTimeZone}
+                        onContactMethodChange={setPreferredContactMethod}
+                        onFrequencyChange={setCommunicationFrequency}
+                      />
+                    </SectionErrorBoundary>
                   )}
 
                   <div className="flex gap-3 pt-2">
@@ -293,11 +298,13 @@ export default function ProfilePage() {
           <Card>
             <div className="p-6">
               <h2 className="text-lg font-bold text-[#1A1A1A] mb-6">Security Settings</h2>
-              <PasswordChangeForm
-                onSuccess={(msg) => setSuccess(msg)}
-                onError={(msg) => setError(msg)}
-                hasPasswordProvider={hasPasswordProvider}
-              />
+              <SectionErrorBoundary sectionName="Password Change">
+                <PasswordChangeForm
+                  onSuccess={(msg) => setSuccess(msg)}
+                  onError={(msg) => setError(msg)}
+                  hasPasswordProvider={hasPasswordProvider}
+                />
+              </SectionErrorBoundary>
             </div>
           </Card>
 

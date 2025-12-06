@@ -11,6 +11,7 @@ import LoadingScreen from "@/components/ui/LoadingScreen";
 import DesktopWorkspaceLayout from "@/components/workspace/DesktopWorkspaceLayout";
 import MobileWorkspaceLayout from "@/components/workspace/MobileWorkspaceLayout";
 import TaskPanelPopup from "@/components/workspace/TaskPanelPopup";
+import { SectionErrorBoundary } from "@/components/error";
 import { addDoc, collection, serverTimestamp, doc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useMemo, useState } from "react";
@@ -145,49 +146,55 @@ export default function WorkspacePage() {
 
   return (
     <AppShell title={workspace.name}>
-      <DesktopWorkspaceLayout
-        workspace={workspace}
-        appUser={appUser}
-        tasks={tasks}
-        messages={filteredMessages}
-        activeTab={activeTab}
-        msgError={msgError}
-        tasksError={tasksError}
-        workspaceId={workspaceId}
-        selectedRecipient={selectedRecipient}
-        onTabChange={setActiveTab}
-        onSendMessage={handleSendMessage}
-        onSelectRecipient={setSelectedRecipient}
-        onToggleTask={handleToggleTask}
-        onAddTask={handleAddTask}
-        onProgressChange={handleProgressChange}
-      />
+      <SectionErrorBoundary sectionName="Desktop Workspace">
+        <DesktopWorkspaceLayout
+          workspace={workspace}
+          appUser={appUser}
+          tasks={tasks}
+          messages={filteredMessages}
+          activeTab={activeTab}
+          msgError={msgError}
+          tasksError={tasksError}
+          workspaceId={workspaceId}
+          selectedRecipient={selectedRecipient}
+          onTabChange={setActiveTab}
+          onSendMessage={handleSendMessage}
+          onSelectRecipient={setSelectedRecipient}
+          onToggleTask={handleToggleTask}
+          onAddTask={handleAddTask}
+          onProgressChange={handleProgressChange}
+        />
+      </SectionErrorBoundary>
 
-      <MobileWorkspaceLayout
-        workspace={workspace}
-        appUser={appUser}
-        messages={filteredMessages}
-        activeTab={activeTab}
-        msgError={msgError}
-        workspaceId={workspaceId}
-        selectedRecipient={selectedRecipient}
-        onTabChange={setActiveTab}
-        onSendMessage={handleSendMessage}
-        onSelectRecipient={setSelectedRecipient}
-        onToggleTaskPanel={() => setShowTaskPanel(!showTaskPanel)}
-      />
+      <SectionErrorBoundary sectionName="Mobile Workspace">
+        <MobileWorkspaceLayout
+          workspace={workspace}
+          appUser={appUser}
+          messages={filteredMessages}
+          activeTab={activeTab}
+          msgError={msgError}
+          workspaceId={workspaceId}
+          selectedRecipient={selectedRecipient}
+          onTabChange={setActiveTab}
+          onSendMessage={handleSendMessage}
+          onSelectRecipient={setSelectedRecipient}
+          onToggleTaskPanel={() => setShowTaskPanel(!showTaskPanel)}
+        />
+      </SectionErrorBoundary>
 
-      <TaskPanelPopup
-        isOpen={showTaskPanel}
-        onClose={() => setShowTaskPanel(false)}
-        workspace={workspace}
-        tasks={tasks}
-        canEdit={appUser.role !== "client"}
-        tasksError={tasksError}
-        onToggleTask={handleToggleTask}
-        onAddTask={handleAddTask}
-        onProgressChange={handleProgressChange}
-      />
+      <SectionErrorBoundary sectionName="Task Panel">
+        <TaskPanelPopup
+          isOpen={showTaskPanel}
+          onClose={() => setShowTaskPanel(false)}
+          workspace={workspace}
+          tasks={tasks}
+          canEdit={appUser.role !== "client"}
+          tasksError={tasksError}
+          onToggleTask={handleToggleTask}
+          onAddTask={handleAddTask}
+          onProgressChange={handleProgressChange}
+        />
+      </SectionErrorBoundary>
     </AppShell>
   );
 }

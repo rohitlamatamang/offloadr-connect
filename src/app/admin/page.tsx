@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import AppShell from "@/components/layout/AppShell";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import { WorkspaceCreationForm, WorkspaceManagementSection, UserManagementSection } from "@/components/admin";
+import { SectionErrorBoundary } from "@/components/error";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useWorkspaces } from "@/hooks/useWorkspaces";
@@ -95,31 +96,37 @@ export default function AdminPage() {
           </div>
         )}
 
-        <WorkspaceCreationForm
-          appUserId={appUser?.id || ""}
-          clients={clients}
-          onSuccess={handleSuccess}
-          onError={handleError}
-        />
-
-        <div className="mt-6">
-          <WorkspaceManagementSection
-            workspaces={workspaces}
-            users={users}
-            loading={workspacesLoading}
+        <SectionErrorBoundary sectionName="Workspace Creation">
+          <WorkspaceCreationForm
+            appUserId={appUser?.id || ""}
+            clients={clients}
             onSuccess={handleSuccess}
             onError={handleError}
           />
+        </SectionErrorBoundary>
+
+        <div className="mt-6">
+          <SectionErrorBoundary sectionName="Workspace Management">
+            <WorkspaceManagementSection
+              workspaces={workspaces}
+              users={users}
+              loading={workspacesLoading}
+              onSuccess={handleSuccess}
+              onError={handleError}
+            />
+          </SectionErrorBoundary>
         </div>
 
         <div className="mt-6">
-          <UserManagementSection
-            users={users}
-            currentUserId={appUser?.id}
-            onSuccess={handleSuccess}
-            onError={handleError}
-            onUsersChange={setUsers}
-          />
+          <SectionErrorBoundary sectionName="User Management">
+            <UserManagementSection
+              users={users}
+              currentUserId={appUser?.id}
+              onSuccess={handleSuccess}
+              onError={handleError}
+              onUsersChange={setUsers}
+            />
+          </SectionErrorBoundary>
         </div>
       </div>
     </AppShell>
