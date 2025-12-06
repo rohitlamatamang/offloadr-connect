@@ -25,8 +25,8 @@ export function useStaffInfo(staffIds: string[]) {
           const staffDoc = await getDoc(doc(db, "users", staffId));
           if (staffDoc.exists()) {
             return {
-              id: staffDoc.id,
               ...staffDoc.data(),
+              id: staffDoc.id,
               createdAt: staffDoc.data().createdAt?.toDate() || null,
             } as AppUser;
           }
