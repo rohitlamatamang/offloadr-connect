@@ -1,6 +1,7 @@
 // src/components/workspace/WorkspaceHeader.tsx
 "use client";
 
+import { useState } from "react";
 import type { Workspace } from "@/types/workspace";
 import type { AppUser } from "@/types/user";
 import { useClientInfo } from "@/hooks/useClientInfo";
@@ -16,6 +17,7 @@ export default function WorkspaceHeader({ workspace, currentUser }: WorkspaceHea
   const { clientInfo } = useClientInfo(workspace.clientId);
   const { staffMembers } = useStaffInfo(workspace.assignedStaffIds);
   const showClientInfo = currentUser && (currentUser.role === "admin" || currentUser.role === "staff");
+  const [isClientInfoOpen, setIsClientInfoOpen] = useState(false);
 
   return (
     <header className="mb-6 pb-6 border-b-2 border-gray-200 bg-gradient-to-r from-white to-gray-50 rounded-xl p-5 -mx-1">
@@ -48,49 +50,87 @@ export default function WorkspaceHeader({ workspace, currentUser }: WorkspaceHea
         )}
       </div>
 
-      {/* Client Info Badge - Only visible to admin/staff */}
+      {/* Client Info Dropdown - Only visible to admin/staff */}
       {showClientInfo && clientInfo && (
-        <div className="mt-4 bg-white border-2 border-gray-200 rounded-xl p-4 shadow-sm">
-          <p className="text-[10px] uppercase tracking-wider text-gray-500 font-bold mb-2">Client Information</p>
-          <div className="flex items-center gap-3 mb-3">
-            {clientInfo.clientType === "company" ? (
-              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-                <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 110 2h-3a1 1 0 01-1-1v-2a1 1 0 00-1-1H9a1 1 0 00-1 1v2a1 1 0 01-1 1H4a1 1 0 110-2V4zm3 1h2v2H7V5zm2 4H7v2h2V9zm2-4h2v2h-2V5zm2 4h-2v2h2V9z" clipRule="evenodd" />
-                </svg>
+        <div className="mt-4">
+          <button
+            onClick={() => setIsClientInfoOpen(!isClientInfoOpen)}
+            className="w-full flex items-center justify-between bg-white border-2 border-gray-200 rounded-xl p-3 shadow-sm hover:bg-gray-50 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              {clientInfo.clientType === "company" ? (
+                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                  <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 110 2h-3a1 1 0 01-1-1v-2a1 1 0 00-1-1H9a1 1 0 00-1 1v2a1 1 0 01-1 1H4a1 1 0 110-2V4zm3 1h2v2H7V5zm2 4H7v2h2V9zm2-4h2v2h-2V5zm2 4h-2v2h2V9z" clipRule="evenodd" />
+                  </svg>
+                </div>
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+                  <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                  </svg>
+                </div>
+              )}
+              <div className="text-left">
+                <p className="text-[10px] uppercase tracking-wider text-gray-500 font-bold">Client Information</p>
+                <p className="text-sm font-bold text-[#1A1A1A]">{clientInfo.name}</p>
               </div>
-            ) : (
-              <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center shrink-0">
-                <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                </svg>
+            </div>
+            <svg
+              className={`w-5 h-5 text-gray-500 transition-transform ${isClientInfoOpen ? "rotate-180" : ""}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          
+          {isClientInfoOpen && (
+            <div className="mt-2 bg-white border-2 border-gray-200 rounded-xl p-4 shadow-sm">
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 pb-3 border-b border-gray-100">
+                  {clientInfo.clientType === "company" ? (
+                    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                      <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 110 2h-3a1 1 0 01-1-1v-2a1 1 0 00-1-1H9a1 1 0 00-1 1v2a1 1 0 01-1 1H4a1 1 0 110-2V4zm3 1h2v2H7V5zm2 4H7v2h2V9zm2-4h2v2h-2V5zm2 4h-2v2h2V9z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+                      <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-[#1A1A1A]">{clientInfo.name}</p>
+                    <p className="text-xs text-gray-500">
+                      {clientInfo.clientType === "company" ? "🏢 Company" : "👤 Individual"}
+                    </p>
+                  </div>
+                </div>
+                {clientInfo.clientType === "company" && clientInfo.companyName && (
+                  <div className="pb-2 border-b border-gray-100">
+                    <p className="text-xs text-gray-500">Company</p>
+                    <p className="text-sm font-semibold text-gray-700">{clientInfo.companyName}</p>
+                  </div>
+                )}
+                {clientInfo.phone && (
+                  <p className="text-xs text-gray-600">📱 {clientInfo.phone}</p>
+                )}
+                {clientInfo.preferredContactMethod && (
+                  <p className="text-xs text-gray-600 capitalize">
+                    💬 Contact via {clientInfo.preferredContactMethod}
+                  </p>
+                )}
+                {clientInfo.communicationFrequency && (
+                  <p className="text-xs text-gray-600 capitalize">
+                    📅 {clientInfo.communicationFrequency === "as-needed" ? "Updates as needed" : clientInfo.communicationFrequency + " updates"}
+                  </p>
+                )}
               </div>
-            )}
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-[#1A1A1A]">{clientInfo.name}</p>
-              <p className="text-xs text-gray-500">
-                {clientInfo.clientType === "company" ? "🏢 Company" : "👤 Individual"}
-              </p>
             </div>
-          </div>
-          {clientInfo.clientType === "company" && clientInfo.companyName && (
-            <div className="mb-2 pb-2 border-b border-gray-100">
-              <p className="text-xs text-gray-500">Company</p>
-              <p className="text-sm font-semibold text-gray-700">{clientInfo.companyName}</p>
-            </div>
-          )}
-          {clientInfo.phone && (
-            <p className="text-xs text-gray-600 mb-1">📱 {clientInfo.phone}</p>
-          )}
-          {clientInfo.preferredContactMethod && (
-            <p className="text-xs text-gray-600 mb-1 capitalize">
-              💬 Contact via {clientInfo.preferredContactMethod}
-            </p>
-          )}
-          {clientInfo.communicationFrequency && (
-            <p className="text-xs text-gray-600 capitalize">
-              📅 {clientInfo.communicationFrequency === "as-needed" ? "Updates as needed" : clientInfo.communicationFrequency + " updates"}
-            </p>
           )}
         </div>
       )}
