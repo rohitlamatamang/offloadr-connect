@@ -27,10 +27,12 @@ export function useGlobalMessages(
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Determine if user has access
+  const hasAccess = appUser && appUser.role !== "client";
+
   useEffect(() => {
     // Early return for non-staff users - don't subscribe
-    if (!appUser || appUser.role === "client") {
-      setLoading(false);
+    if (!hasAccess) {
       return;
     }
 
@@ -85,7 +87,7 @@ export function useGlobalMessages(
     );
 
     return () => unsubscribe();
-  }, [appUser]);
+  }, [hasAccess]);
 
-  return { messages, loading, error };
+  return { messages, loading: hasAccess ? loading : false, error };
 }
