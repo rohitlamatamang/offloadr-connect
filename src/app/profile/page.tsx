@@ -36,7 +36,7 @@ export default function ProfilePage() {
   // Check if user signed in with password provider
   const hasPasswordProvider = auth.currentUser?.providerData.some(
     (provider) => provider.providerId === "password"
-  );
+  ) ?? false;
 
   const isClient = appUser?.role === "client";
   const isStaff = appUser?.role === "staff" || appUser?.role === "admin";
