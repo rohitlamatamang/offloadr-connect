@@ -22,12 +22,12 @@ export default function GlobalStaffSelector({
 
   // Show all staff members except current user
   const availableStaff = staffMembers.filter(
-    (staff) => staff.uid !== currentUserId
+    (staff) => staff.id !== currentUserId
   );
 
   const handleSelect = (staff: AppUser | null) => {
     if (staff) {
-      onSelectRecipient({ id: staff.uid, name: staff.name });
+      onSelectRecipient({ id: staff.id, name: staff.name });
     } else {
       onSelectRecipient(null); // All staff
     }
@@ -94,11 +94,11 @@ export default function GlobalStaffSelector({
                 </p>
                 {availableStaff.map((staff) => (
                   <button
-                    key={staff.uid}
+                    key={staff.id}
                     type="button"
                     onClick={() => handleSelect(staff)}
                     className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-purple-50 transition-colors ${
-                      selectedRecipient?.id === staff.uid ? "bg-purple-50 border-l-4 border-purple-500" : ""
+                      selectedRecipient?.id === staff.id ? "bg-purple-50 border-l-4 border-purple-500" : ""
                     }`}
                   >
                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center shrink-0 text-sm">
@@ -110,7 +110,7 @@ export default function GlobalStaffSelector({
                         {staff.staffRoleLabel || getStaffRoleLabel(staff.staffRole) || staff.email}
                       </p>
                     </div>
-                    {selectedRecipient?.id === staff.uid && (
+                    {selectedRecipient?.id === staff.id && (
                       <svg className="w-5 h-5 text-purple-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
