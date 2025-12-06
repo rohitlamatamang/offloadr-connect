@@ -116,38 +116,35 @@ export default function Sidebar({
         ))}
       </nav>
 
-      {/* User info & logout */}
+      {/* User info */}
       <div className="border-t border-gray-200 p-4">
-        <div className="mb-3 rounded-lg bg-gray-50 border border-gray-200 p-3">
-          <div className="text-xs text-gray-500">Signed in as</div>
-          <div className="mt-1 truncate text-sm font-medium text-[#1A1A1A]">
-            {appUser?.name || appUser?.email}
-          </div>
-          <div className="mt-0.5 text-xs font-medium">
-            <span className="text-gray-500">Role: </span>
-            <span className="text-[#FF4D28]">{appUser?.role}</span>
-          </div>
-        </div>
-        <button
-          onClick={handleLogout}
-          className="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-red-50 hover:text-red-600 border border-gray-200"
+        <Link 
+          href="/profile"
+          onClick={() => {
+            if (variant === "mobile" && onClose) {
+              onClose();
+            }
+          }}
+          className="flex items-center gap-3 rounded-lg bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 p-3 transition-all hover:bg-gray-100 hover:border-[#FF4D28]/30 hover:shadow-md group"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={2}
-            stroke="currentColor"
-            className="h-5 w-5"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"
-            />
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#FF4D28] to-[#FF6B47] text-white font-bold text-sm">
+            {(appUser?.name || appUser?.email || "U").charAt(0).toUpperCase()}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="truncate text-sm font-semibold text-[#1A1A1A]">
+              {appUser?.name || appUser?.email}
+            </div>
+            <div className="text-xs font-medium text-gray-500">
+              <span className="capitalize">{appUser?.role}</span>
+              {appUser?.staffRoleLabel && (
+                <span className="text-[#FF4D28]"> • {appUser.staffRoleLabel}</span>
+              )}
+            </div>
+          </div>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-5 w-5 text-gray-400 group-hover:text-[#FF4D28] transition-colors">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
           </svg>
-          <span>Sign Out</span>
-        </button>
+        </Link>
       </div>
     </div>
   );

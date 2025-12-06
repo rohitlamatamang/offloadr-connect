@@ -5,6 +5,7 @@ import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
 import MobileHeader from "./MobileHeader";
 import Footer from "./Footer";
+import StaffChatBubble from "@/components/messaging/StaffChatBubble";
 
 export interface AppShellProps {
   children: React.ReactNode;
@@ -50,6 +51,9 @@ export default function AppShell({
         {/* Footer */}
         {showFooter && <Footer />}
       </div>
+
+      {/* Floating Staff Chat Bubble */}
+      <StaffChatBubble />
     </div>
   );
 }

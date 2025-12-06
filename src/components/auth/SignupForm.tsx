@@ -73,9 +73,13 @@ export default function SignupForm() {
       await sendEmailVerification(user);
       
       // Show success message and redirect
-      alert("Account created! Please check your email to verify your account before signing in.");
       await auth.signOut(); // Sign them out until they verify
-      router.push("/");
+      setSuccess("Account created successfully! Please check your email to verify your account before signing in.");
+      
+      // Redirect after 3 seconds
+      setTimeout(() => {
+        router.push("/");
+      }, 3000);
     } catch (err: unknown) {
       const error = err as { code?: string; message?: string };
       

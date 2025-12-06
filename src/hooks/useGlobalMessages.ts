@@ -1,4 +1,4 @@
-// src/hooks/useMessages.ts
+// src/hooks/useGlobalMessages.ts
 "use client";
 
 import { useEffect, useState } from "react";
@@ -14,45 +14,40 @@ import { db } from "@/lib/firebase";
 import type { Message } from "@/types/message";
 import type { AppUser } from "@/types/user";
 
-interface UseMessagesResult {
+interface UseGlobalMessagesResult {
   messages: Message[];
   loading: boolean;
   error: string | null;
 }
 
-export function useMessages(
-  workspaceId: string | null,
+export function useGlobalMessages(
   appUser: AppUser | null
-): UseMessagesResult {
+): UseGlobalMessagesResult {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!workspaceId || !appUser) {
+    if (!appUser) {
+      return;
+    }
+
+    // Only staff and admin can access global messages
+    if (appUser.role === "client") {
+      setMessages([]);
+      setLoading(false);
       return;
     }
 
     const colRef = collection(db, "messages");
 
-    // Clients only read type "client"
-    // Staff/admin read both, but we filter UI by tab
-    let q;
-
-    if (appUser.role === "client") {
-      q = query(
-        colRef,
-        where("workspaceId", "==", workspaceId),
-        where("type", "==", "client"),
-        orderBy("createdAt", "asc")
-      );
-    } else {
-      q = query(
-        colRef,
-        where("workspaceId", "==", workspaceId),
-        orderBy("createdAt", "asc")
-      );
-    }
+    // Query for global messages (workspaceId is null or empty)
+    // We'll use a special workspaceId value "GLOBAL_STAFF_CHAT" to identify global messages
+    const q = query(
+      colRef,
+      where("workspaceId", "==", "GLOBAL_STAFF_CHAT"),
+      orderBy("createdAt", "asc")
+    );
 
     const unsubscribe = onSnapshot(
       q,
@@ -65,7 +60,7 @@ export function useMessages(
             senderId: data.senderId ?? "",
             senderName: data.senderName ?? "Unknown",
             senderRole: data.senderRole,
-            type: (data.type as Message["type"]) ?? "general",
+            type: (data.type as Message["type"]) ?? "staff",
             text: data.text ?? "",
             recipientId: data.recipientId,
             recipientName: data.recipientName,
@@ -76,9 +71,6 @@ export function useMessages(
         // Filter direct messages for staff (admin sees all)
         if (appUser.role === "staff") {
           items = items.filter((msg) => {
-            // Show all non-staff messages
-            if (msg.type !== "staff") return true;
-            
             // Show group messages (no recipient)
             if (!msg.recipientId) return true;
             
@@ -91,14 +83,14 @@ export function useMessages(
         setLoading(false);
       },
       (err) => {
-        console.error("Error loading messages:", err);
+        console.error("Error loading global messages:", err);
         setError("Failed to load messages.");
         setLoading(false);
       }
     );
 
     return () => unsubscribe();
-  }, [workspaceId, appUser]);
+  }, [appUser]);
 
   return { messages, loading, error };
 }

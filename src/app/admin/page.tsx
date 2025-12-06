@@ -9,6 +9,7 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Card from "@/components/ui/Card";
 import LoadingScreen from "@/components/ui/LoadingScreen";
+import StaffSelector from "@/components/workspace/StaffSelector";
 import { collection, addDoc, serverTimestamp, getDocs, doc, deleteDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useWorkspaces } from "@/hooks/useWorkspaces";
@@ -27,6 +28,7 @@ export default function AdminPage() {
   const [workspaceName, setWorkspaceName] = useState("");
   const [workspaceDesc, setWorkspaceDesc] = useState("");
   const [selectedClientId, setSelectedClientId] = useState("");
+  const [assignedStaffIds, setAssignedStaffIds] = useState<string[]>([]);
   const [progress, setProgress] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -133,19 +135,38 @@ export default function AdminPage() {
       if (!appUser) throw new Error("Not authenticated");
       if (!selectedClientId) throw new Error("Please select a client");
 
-      await addDoc(collection(db, "workspaces"), {
+      const docRef = await addDoc(collection(db, "workspaces"), {
         name: workspaceName,
         description: workspaceDesc,
         progress: progress,
         clientId: selectedClientId,
+        assignedStaffIds: assignedStaffIds,
         createdBy: appUser.id,
         createdAt: serverTimestamp(),
       });
+
+      // Send notifications
+      const { notifyWorkspaceAssigned, notifyMultipleUsers } = await import("@/lib/notifications");
+      
+      // Notify client about new workspace
+      await notifyWorkspaceAssigned(selectedClientId, workspaceName, docRef.id);
+      
+      // Notify assigned staff members
+      if (assignedStaffIds.length > 0) {
+        await notifyMultipleUsers(
+          assignedStaffIds,
+          "workspace_assigned",
+          "New Workspace Assigned",
+          `You've been assigned to "${workspaceName}"`,
+          docRef.id
+        );
+      }
 
       setSuccess("Workspace created successfully!");
       setWorkspaceName("");
       setWorkspaceDesc("");
       setSelectedClientId("");
+      setAssignedStaffIds([]);
       setProgress(0);
     } catch (err: unknown) {
       console.error("Error creating workspace:", err);
@@ -248,6 +269,19 @@ export default function AdminPage() {
                   </option>
                 ))}
               </select>
+            </div>
+
+            <div>
+              <StaffSelector
+                selectedStaffIds={assignedStaffIds}
+                onSelectionChange={setAssignedStaffIds}
+              />
+            </div>
+
+            <div className="p-3 bg-blue-50 border-2 border-blue-200 rounded-xl">
+              <p className="text-xs text-blue-700">
+                <strong>Note:</strong> As an admin, you automatically have access to all workspaces. Only assign staff members who need to work on this project.
+              </p>
               {clients.length === 0 && (
                 <p className="mt-1 text-xs text-amber-400">
                   No clients available. Ask users to sign up with the &quot;Client&quot; role.

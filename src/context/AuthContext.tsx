@@ -47,6 +47,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             email: data.email ?? user.email ?? "",
             name: data.name ?? "",
             role: data.role ?? "client", // default fallback
+            staffRole: data.staffRole,
+            staffRoleLabel: data.staffRoleLabel,
+            clientType: data.clientType,
+            companyName: data.companyName,
+            phone: data.phone,
+            timeZone: data.timeZone,
+            preferredContactMethod: data.preferredContactMethod,
+            communicationFrequency: data.communicationFrequency,
           };
           setAppUser(mapped);
         } else {

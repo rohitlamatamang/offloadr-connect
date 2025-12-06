@@ -32,9 +32,10 @@ export function useWorkspaces(appUser: AppUser | null): UseWorkspacesResult {
 
     const colRef = collection(db, "workspaces");
 
-    // For now:
-    // - if client: filter by clientId (without orderBy to avoid index requirement)
-    // - if staff/admin: show all workspaces ordered by creation date
+    // Workspace filtering logic:
+    // - Client: filter by clientId
+    // - Admin: show all workspaces
+    // - Staff: show only workspaces they are assigned to (filter client-side due to array-contains)
     let q;
 
     if (appUser.role === "client") {
@@ -44,13 +45,14 @@ export function useWorkspaces(appUser: AppUser | null): UseWorkspacesResult {
         where("clientId", "==", appUser.id)
       );
     } else {
+      // Admin and staff: fetch all, filter staff assignments client-side
       q = query(colRef, orderBy("createdAt", "desc"));
     }
 
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
-        const items: Workspace[] = snapshot.docs.map((doc) => {
+        let items: Workspace[] = snapshot.docs.map((doc) => {
           const data = doc.data() as DocumentData;
           return {
             id: doc.id,
@@ -58,10 +60,18 @@ export function useWorkspaces(appUser: AppUser | null): UseWorkspacesResult {
             description: data.description ?? "",
             progress: typeof data.progress === "number" ? data.progress : 0,
             clientId: data.clientId ?? "",
+            assignedStaffIds: Array.isArray(data.assignedStaffIds) ? data.assignedStaffIds : [],
             createdBy: data.createdBy ?? "",
             createdAt: data.createdAt?.toDate?.() ?? null,
           };
         });
+
+        // Filter for staff: only show workspaces they're assigned to
+        if (appUser.role === "staff") {
+          items = items.filter(workspace => 
+            workspace.assignedStaffIds.includes(appUser.id)
+          );
+        }
 
         // Debug logging
         if (appUser.role === "client") {
@@ -70,6 +80,9 @@ export function useWorkspaces(appUser: AppUser | null): UseWorkspacesResult {
           items.forEach(ws => {
             console.log(`- ${ws.name}: clientId = "${ws.clientId}"`);
           });
+        } else if (appUser.role === "staff") {
+          console.log("Staff user ID:", appUser.id);
+          console.log("Assigned workspaces:", items.length);
         }
 
         setWorkspaces(items);

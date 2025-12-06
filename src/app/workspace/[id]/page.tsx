@@ -11,12 +11,14 @@ import ProgressPanel from "@/components/workspace/ProgressPanel";
 import MessageList from "@/components/messaging/MessageList";
 import ChatInput from "@/components/messaging/ChatInput";
 import ChatTabs, { ChatTab } from "@/components/messaging/ChatTabs";
+import StaffMessageSelector from "@/components/messaging/StaffMessageSelector";
 import AppShell from "@/components/layout/AppShell";
 import Button from "@/components/ui/Button";
 import LoadingScreen from "@/components/ui/LoadingScreen";
-import { addDoc, collection, serverTimestamp, doc, updateDoc } from "firebase/firestore";
+import { addDoc, collection, serverTimestamp, doc, updateDoc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useMemo, useState } from "react";
+import { notifyTaskCompleted, notifyTaskAssigned, notifyProgressUpdate, notifyWorkspaceCompleted } from "@/lib/notifications";
 
 export default function WorkspacePage() {
   const params = useParams();
@@ -40,6 +42,7 @@ export default function WorkspacePage() {
 
   const [activeTab, setActiveTab] = useState<ChatTab>("client");
   const [showTaskPanel, setShowTaskPanel] = useState(false);
+  const [selectedRecipient, setSelectedRecipient] = useState<{ id: string | null; name: string } | null>(null);
   const loading = authLoading || wsLoading || msgLoading || tasksLoading;
 
   const filteredMessages = useMemo(() => {
@@ -69,18 +72,27 @@ export default function WorkspacePage() {
       msgType = activeTab === "team" ? "staff" : "client";
     }
 
-    await addDoc(collection(db, "messages"), {
+    const messageData: Record<string, unknown> = {
       workspaceId,
       senderId: appUser.id,
       senderName: appUser.name || appUser.email,
+      senderRole: appUser.staffRoleLabel || null, // Add staff role for display
       type: msgType,
       text,
       createdAt: serverTimestamp(),
-    });
+    };
+
+    // Add recipient info for staff direct messages
+    if (msgType === "staff" && selectedRecipient) {
+      messageData.recipientId = selectedRecipient.id;
+      messageData.recipientName = selectedRecipient.name;
+    }
+
+    await addDoc(collection(db, "messages"), messageData);
   };
 
   const handleToggleTask = async (taskId: string, completed: boolean) => {
-    if (!workspaceId || !appUser) return;
+    if (!workspaceId || !appUser || !workspace) return;
     if (appUser.role === "client") return; // clients can't edit
 
     const ref = doc(db, "tasks", taskId);
@@ -88,7 +100,7 @@ export default function WorkspacePage() {
   };
 
   const handleAddTask = async (label: string) => {
-    if (!workspaceId || !appUser) return;
+    if (!workspaceId || !appUser || !workspace) return;
     if (appUser.role === "client") return;
 
     await addDoc(collection(db, "tasks"), {
@@ -101,11 +113,27 @@ export default function WorkspacePage() {
   };
 
   const handleProgressChange = async (value: number) => {
-    if (!workspaceId || !appUser) return;
+    if (!workspaceId || !appUser || !workspace) return;
     if (appUser.role === "client") return;
 
     const ref = doc(db, "workspaces", workspaceId);
     await updateDoc(ref, { progress: value });
+
+    // Send notification for milestone progress (25%, 50%, 75%, 100%)
+    if (appUser.role === "admin" || appUser.role === "staff") {
+      const milestones = [25, 50, 75, 100];
+      if (milestones.includes(value)) {
+        try {
+          if (value === 100) {
+            await notifyWorkspaceCompleted(workspace.clientId, workspace.name, workspaceId);
+          } else {
+            await notifyProgressUpdate(workspace.clientId, value, workspace.name, workspaceId);
+          }
+        } catch (error) {
+          console.error("Failed to send progress notification:", error);
+        }
+      }
+    }
   };
 
   if (loading) {
@@ -134,7 +162,7 @@ export default function WorkspacePage() {
       {/* Desktop Layout */}
       <div className="hidden lg:block mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
         <div className="flex-shrink-0">
-          <WorkspaceHeader workspace={workspace} />
+          <WorkspaceHeader workspace={workspace} currentUser={appUser} />
         </div>
 
         <div className="mt-4 flex flex-row gap-4">
@@ -163,6 +191,17 @@ export default function WorkspacePage() {
               <MessageList messages={filteredMessages} />
             </div>
             <div className="flex-shrink-0 border-t border-gray-200">
+              {/* Staff Message Selector - Only show in Team tab */}
+              {activeTab === "team" && !isClient && workspace && (
+                <div className="px-4 pt-3 pb-2 border-b border-gray-200 bg-gray-50">
+                  <StaffMessageSelector
+                    workspaceStaffIds={workspace.assignedStaffIds}
+                    selectedRecipient={selectedRecipient}
+                    onSelectRecipient={setSelectedRecipient}
+                    currentUserId={appUser?.id || ""}
+                  />
+                </div>
+              )}
               <ChatInput
                 onSend={handleSendMessage}
                 disabled={!workspaceId}
@@ -192,7 +231,7 @@ export default function WorkspacePage() {
       {/* Mobile Layout - Full Screen Chat */}
       <div className="lg:hidden flex flex-col h-screen">
         {/* Mobile Header */}
-        <div className="flex items-center justify-between bg-gradient-to-r from-white to-gray-50 border-b-2 border-gray-200 px-4 py-4 flex-shrink-0 shadow-sm">
+        <div className="sticky top-0 z-10 flex items-center justify-between bg-gradient-to-r from-white to-gray-50 border-b-2 border-gray-200 px-4 py-4 shadow-sm">
           <Button
             variant="ghost"
             onClick={() => router.push("/dashboard")}
@@ -217,7 +256,7 @@ export default function WorkspacePage() {
 
         {/* Chat Section */}
         <section className="flex flex-col flex-1 bg-gradient-to-b from-white to-gray-50 min-h-0">
-          <div className="flex items-center justify-center border-b-2 border-gray-200 px-4 py-3 bg-white shadow-sm flex-shrink-0">
+          <div className="sticky top-[72px] z-10 flex items-center justify-center border-b-2 border-gray-200 px-4 py-3 bg-white shadow-sm">
             <ChatTabs
               activeTab={isClient ? "client" : activeTab}
               onChange={(tab) => !isClient && setActiveTab(tab)}
@@ -234,7 +273,18 @@ export default function WorkspacePage() {
           <div className="flex-1 overflow-y-auto min-h-0">
             <MessageList messages={filteredMessages} />
           </div>
-          <div className="flex-shrink-0 border-t border-gray-200">
+          <div className="sticky bottom-0 z-10 border-t border-gray-200 bg-white">
+            {/* Staff Message Selector - Only show in Team tab */}
+            {activeTab === "team" && !isClient && workspace && (
+              <div className="px-4 pt-3 pb-2 border-b border-gray-200 bg-gray-50">
+                <StaffMessageSelector
+                  workspaceStaffIds={workspace.assignedStaffIds}
+                  selectedRecipient={selectedRecipient}
+                  onSelectRecipient={setSelectedRecipient}
+                  currentUserId={appUser?.id || ""}
+                />
+              </div>
+            )}
             <ChatInput
               onSend={handleSendMessage}
               disabled={!workspaceId}

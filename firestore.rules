@@ -11,20 +11,29 @@ service cloud.firestore {
       return request.auth != null && request.auth.token.email_verified == true;
     }
     
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+    
     function getUserRole() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+      return getUserData().role;
     }
     
     function isAdmin() {
-      return isSignedIn() && getUserRole() == 'admin';
+      return isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && getUserRole() == 'admin';
     }
     
     function isStaff() {
-      return isSignedIn() && (getUserRole() == 'staff' || getUserRole() == 'admin');
+      return isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && (getUserRole() == 'staff' || getUserRole() == 'admin');
     }
     
     function isClient() {
-      return isSignedIn() && getUserRole() == 'client';
+      return isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && getUserRole() == 'client';
+    }
+    
+    // Check if user is assigned to workspace (admin always has access, staff only if assigned)
+    function isAssignedToWorkspace(workspaceData) {
+      return isAdmin() || (getUserRole() == 'staff' && 'assignedStaffIds' in workspaceData && request.auth.uid in workspaceData.assignedStaffIds);
     }
     
     // Validation helpers
@@ -38,93 +47,148 @@ service cloud.firestore {
 
     // Users collection
     match /users/{userId} {
-      // Anyone authenticated can read any user profile
+      // Anyone authenticated can read any user profile (no verification required for user profiles)
+      // This allows new users to see their profile even before email verification
       allow read: if isSignedIn();
       
       // Users can create their own profile with ONLY specific fields
       // Must set role to "client" - cannot self-assign staff/admin
+      // No verification required for profile creation
       allow create: if request.auth.uid == userId 
         && request.resource.data.email is string
         && request.resource.data.name is string
         && request.resource.data.role == 'client'
         && request.resource.data.createdAt is timestamp;
       
-      // Users can update ONLY their name/email, NOT role
+      // Users can update their profile fields (name, clientType, companyName, phone, etc), BUT NOT role or email
       // Admins can update any field including role
+      // No verification required for users to update their own profile
       allow update: if isSignedIn() && (
-        (request.auth.uid == userId && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role'])) 
-        || isAdmin()
+        (request.auth.uid == userId && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'email'])) 
+        || (isVerified() && isAdmin())
       );
       
-      // Only admins can delete users
-      allow delete: if isAdmin();
+      // Only verified admins can delete users
+      allow delete: if isVerified() && isAdmin();
     }
 
     // Workspaces collection
     match /workspaces/{workspaceId} {
       // Clients can only read workspaces assigned to them
-      // Staff/admin can read all workspaces
-      // MUST be email verified
-      allow read: if isVerified() && (
-        isStaff() || 
-        (isClient() && resource.data.clientId == request.auth.uid)
-      );
+      // Admin can read all workspaces
+      // Staff can read all workspaces (filtering happens client-side)
+      // Check if user document exists first, then verify email
+      allow read: if isSignedIn() 
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && isVerified() 
+        && (
+          isStaff() || 
+          (isClient() && resource.data.clientId == request.auth.uid)
+        );
       
-      // Only verified staff/admin can create, update, or delete workspaces
-      // Validate required fields on create
+      // Only verified staff/admin can create workspaces
+      // Validate required fields on create including assignedStaffIds
       allow create: if isVerified() && isStaff()
         && isValidString(request.resource.data.name, 1, 100)
         && isValidString(request.resource.data.description, 0, 500)
         && request.resource.data.progress >= 0 
-        && request.resource.data.progress <= 100;
+        && request.resource.data.progress <= 100
+        && request.resource.data.assignedStaffIds is list;
       
-      allow update, delete: if isVerified() && isStaff();
+      // Only admin or assigned staff can update/delete
+      allow update, delete: if isVerified() && isAssignedToWorkspace(resource.data);
     }
 
     // Messages collection
     match /messages/{messageId} {
-      // Staff/admin can read all messages
-      // Clients can only read messages with type == "client"
-      // MUST be email verified
-      allow read: if isVerified() && (
-        isStaff() ||
-        (isClient() && resource.data.type == 'client')
-      );
+      // Global staff messages (workspaceId == "GLOBAL_STAFF_CHAT")
+      // Staff/admin can read global messages (all group messages or DMs they're part of)
+      // Workspace messages follow existing rules
+      allow read: if isSignedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && isVerified() 
+        && (
+          // Global staff chat access
+          (resource.data.workspaceId == 'GLOBAL_STAFF_CHAT' && isStaff() && (
+            !('recipientId' in resource.data) || 
+            resource.data.senderId == request.auth.uid || 
+            resource.data.recipientId == request.auth.uid
+          )) ||
+          // Workspace messages
+          isAssignedToWorkspace(get(/databases/$(database)/documents/workspaces/$(resource.data.workspaceId)).data) ||
+          (isClient() && resource.data.type == 'client') ||
+          (getUserRole() == 'staff' && resource.data.type == 'staff' && 'recipientId' in resource.data && (resource.data.senderId == request.auth.uid || resource.data.recipientId == request.auth.uid))
+        );
       
-      // Staff/admin can create any message type
-      // Clients can only create messages with type == "client" AND senderId must be their own uid
-      // Validate message length (max 2000 chars)
-      allow create: if isVerified() 
+      // Allow staff/admin to create global messages
+      // Allow assigned staff/admin to create workspace messages
+      // Clients can only create client messages
+      allow create: if isSignedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && isVerified() 
         && isValidString(request.resource.data.text, 1, 2000)
         && request.resource.data.senderId == request.auth.uid
         && (
-          isStaff() ||
+          // Global staff chat creation
+          (request.resource.data.workspaceId == 'GLOBAL_STAFF_CHAT' && isStaff()) ||
+          // Workspace messages
+          isAssignedToWorkspace(get(/databases/$(database)/documents/workspaces/$(request.resource.data.workspaceId)).data) || 
           (isClient() && request.resource.data.type == 'client')
         );
       
-      // Only message sender OR staff/admin can update/delete messages
-      allow update, delete: if isVerified() && (
-        resource.data.senderId == request.auth.uid || isStaff()
-      );
+      // No one can update or delete messages (immutable)
+      allow update, delete: if false;
     }
 
     // Tasks collection
     match /tasks/{taskId} {
-      // Staff/admin can read all tasks
-      // Clients can read tasks (workspace filtering is done in app logic)
-      // MUST be email verified
-      allow read: if isVerified();
+      // Admin or assigned staff can read tasks
+      // Clients can read tasks belonging to their workspace
+      // MUST be email verified and user document must exist
+      allow read: if isSignedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && isVerified() 
+        && (
+          isAssignedToWorkspace(get(/databases/$(database)/documents/workspaces/$(resource.data.workspaceId)).data) ||
+          (isClient() && get(/databases/$(database)/documents/workspaces/$(resource.data.workspaceId)).data.clientId == request.auth.uid)
+        );
       
-      // Only verified staff/admin can create, update, or delete tasks
-      // Validate task fields
-      allow create: if isVerified() && isStaff()
+      // Only verified admin or assigned staff can create, update, or delete tasks
+      // Validate required fields
+      allow create: if isVerified() 
+        && isAssignedToWorkspace(get(/databases/$(database)/documents/workspaces/$(request.resource.data.workspaceId)).data)
         && isValidString(request.resource.data.label, 1, 200)
-        && request.resource.data.completed is bool
         && request.resource.data.workspaceId is string
         && request.resource.data.createdBy is string
         && request.resource.data.createdAt is timestamp;
       
-      allow update, delete: if isVerified() && isStaff();
+      allow update, delete: if isVerified() && isAssignedToWorkspace(get(/databases/$(database)/documents/workspaces/$(resource.data.workspaceId)).data);
+    }
+
+    // Notifications collection
+    match /notifications/{notificationId} {
+      // Users can only read their own notifications
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      
+      // Admin can always create notifications
+      // Staff can only create notifications for workspaces they're assigned to
+      allow create: if isVerified() 
+        && (
+          isAdmin() || 
+          (getUserRole() == 'staff' && (!('workspaceId' in request.resource.data) || isAssignedToWorkspace(get(/databases/$(database)/documents/workspaces/$(request.resource.data.workspaceId)).data)))
+        )
+        && request.resource.data.userId is string
+        && request.resource.data.type is string
+        && request.resource.data.title is string
+        && request.resource.data.message is string
+        && request.resource.data.read is bool
+        && request.resource.data.createdAt is timestamp;
+      
+      // Users can update (mark as read) their own notifications
+      allow update: if isSignedIn() && resource.data.userId == request.auth.uid;
+      
+      // Only verified staff/admin can delete notifications
+      allow delete: if isVerified() && isStaff();
     }
   }
 }
