@@ -28,13 +28,8 @@ export function useGlobalMessages(
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!appUser) {
-      return;
-    }
-
-    // Only staff and admin can access global messages
-    if (appUser.role === "client") {
-      setMessages([]);
+    // Early return for non-staff users - don't subscribe
+    if (!appUser || appUser.role === "client") {
       setLoading(false);
       return;
     }
