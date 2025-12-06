@@ -120,11 +120,7 @@ export default function StaffChatPage() {
                   </div>
                 </div>
               ) : (
-                <MessageList 
-                  messages={messages} 
-                  currentUserId={appUser.id}
-                  currentUserRole={appUser.role}
-                />
+                <MessageList messages={messages} />
               )}
             </div>
 
