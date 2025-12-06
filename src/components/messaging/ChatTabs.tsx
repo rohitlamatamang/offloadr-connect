@@ -9,13 +9,13 @@ type ChatTab = "team" | "client";
 interface ChatTabsProps {
   activeTab: ChatTab;
   onChange: (tab: ChatTab) => void;
-  appUser: AppUser;
+  appUser: AppUser | null;
 }
 
 export type { ChatTab };
 
 export default function ChatTabs({ activeTab, onChange, appUser }: ChatTabsProps) {
-  const isClient = appUser.role === "client";
+  const isClient = appUser?.role === "client";
 
   // Clients only see Client tab, staff/admin see both
   const tabs: ChatTab[] = isClient ? ["client"] : ["team", "client"];
