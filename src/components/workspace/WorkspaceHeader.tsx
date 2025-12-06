@@ -104,7 +104,7 @@ export default function WorkspaceHeader({ workspace, currentUser }: WorkspaceHea
           <div className="flex flex-wrap gap-3">
             {staffMembers.map((staff) => (
               <div
-                key={staff.uid}
+                key={staff.id}
                 className="flex items-center gap-2 bg-white rounded-lg px-3 py-2 border border-orange-200 shadow-sm"
               >
                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#FF4D28] to-[#FF6B47] flex items-center justify-center text-white font-bold text-xs shrink-0">
