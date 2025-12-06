@@ -3,6 +3,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     // Helper functions for authentication and authorization
+    // Updated: December 6, 2025
     function isSignedIn() {
       return request.auth != null;
     }
