@@ -65,8 +65,8 @@ export default function StaffChatModal({ isOpen, onClose }: StaffChatModalProps)
   // Filter messages based on current view
   const displayMessages = dmConversation
     ? messages.filter(msg => 
-        (msg.senderId === appUser.id && msg.recipientId === dmConversation.uid) ||
-        (msg.recipientId === appUser.id && msg.senderId === dmConversation.uid)
+        (msg.senderId === appUser.id && msg.recipientId === dmConversation.id) ||
+        (msg.recipientId === appUser.id && msg.senderId === dmConversation.id)
       )
     : messages.filter(msg => !msg.recipientId); // Only group messages
 
@@ -156,8 +156,6 @@ export default function StaffChatModal({ isOpen, onClose }: StaffChatModalProps)
           ) : (
             <MessageList 
               messages={displayMessages} 
-              currentUserId={appUser.id}
-              currentUserRole={appUser.role}
             />
           )}
         </div>
