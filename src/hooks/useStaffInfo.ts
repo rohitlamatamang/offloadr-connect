@@ -24,10 +24,21 @@ export function useStaffInfo(staffIds: string[]) {
         const staffPromises = staffIds.map(async (staffId) => {
           const staffDoc = await getDoc(doc(db, "users", staffId));
           if (staffDoc.exists()) {
+            const data = staffDoc.data();
             return {
-              ...staffDoc.data(),
               id: staffDoc.id,
-              createdAt: staffDoc.data().createdAt?.toDate() || null,
+              email: data.email || "",
+              name: data.name || "",
+              role: data.role || "staff",
+              staffRole: data.staffRole,
+              staffRoleLabel: data.staffRoleLabel,
+              clientType: data.clientType,
+              companyName: data.companyName,
+              phone: data.phone,
+              timeZone: data.timeZone,
+              preferredContactMethod: data.preferredContactMethod,
+              communicationFrequency: data.communicationFrequency,
+              createdAt: data.createdAt?.toDate() || null,
             } as AppUser;
           }
           return null;

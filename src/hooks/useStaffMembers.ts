@@ -21,10 +21,21 @@ export function useStaffMembers() {
 
         const staff: AppUser[] = [];
         snapshot.forEach((doc) => {
+          const data = doc.data();
           staff.push({
-            uid: doc.id,
-            ...doc.data(),
-            createdAt: doc.data().createdAt?.toDate() || null,
+            id: doc.id,
+            email: data.email || "",
+            name: data.name || "",
+            role: data.role || "staff",
+            staffRole: data.staffRole,
+            staffRoleLabel: data.staffRoleLabel,
+            clientType: data.clientType,
+            companyName: data.companyName,
+            phone: data.phone,
+            timeZone: data.timeZone,
+            preferredContactMethod: data.preferredContactMethod,
+            communicationFrequency: data.communicationFrequency,
+            createdAt: data.createdAt?.toDate() || null,
           } as AppUser);
         });
 

@@ -50,11 +50,10 @@ export default function StaffChatModal({ isOpen, onClose }: StaffChatModalProps)
     if (recipient?.id) {
       // Open DM conversation view
       setDmConversation({ 
-        uid: recipient.id, 
+        id: recipient.id, 
         name: recipient.name,
         email: "",
         role: "staff",
-        id: recipient.id
       } as AppUser);
     } else {
       // Back to group chat
