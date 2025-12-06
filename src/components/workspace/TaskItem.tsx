@@ -1,6 +1,7 @@
 // src/components/workspace/TaskItem.tsx
 "use client";
 
+import { memo } from "react";
 import type { Task } from "@/types/task";
 
 interface TaskItemProps {
@@ -9,7 +10,7 @@ interface TaskItemProps {
   onToggle: (taskId: string, completed: boolean) => void;
 }
 
-export default function TaskItem({ task, canEdit, onToggle }: TaskItemProps) {
+function TaskItem({ task, canEdit, onToggle }: TaskItemProps) {
   return (
     <label className="group flex cursor-pointer items-start gap-3 rounded-xl px-4 py-3 text-xs text-[#1A1A1A] hover:bg-gradient-to-r hover:from-gray-50 hover:to-white border-2 border-transparent hover:border-gray-200 transition-all duration-200 hover:shadow-sm">
       <input
@@ -27,3 +28,5 @@ export default function TaskItem({ task, canEdit, onToggle }: TaskItemProps) {
     </label>
   );
 }
+
+export default memo(TaskItem);

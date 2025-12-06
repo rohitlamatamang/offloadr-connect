@@ -3,13 +3,14 @@
 
 import type { Message } from "@/types/message";
 import { useAuth } from "@/context/AuthContext";
+import { memo } from "react";
 import clsx from "clsx";
 
 interface ChatMessageProps {
   message: Message;
 }
 
-export default function ChatMessage({ message }: ChatMessageProps) {
+function ChatMessage({ message }: ChatMessageProps) {
   const { appUser } = useAuth();
   const isOwn = appUser && appUser.id === message.senderId;
   const isClientMessage = message.type === "client";
@@ -82,3 +83,5 @@ export default function ChatMessage({ message }: ChatMessageProps) {
     </div>
   );
 }
+
+export default memo(ChatMessage);

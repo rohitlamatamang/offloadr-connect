@@ -1,6 +1,7 @@
 // src/components/workspace/WorkspaceCard.tsx
 "use client";
 
+import { memo } from "react";
 import Link from "next/link";
 import type { Workspace } from "@/types/workspace";
 
@@ -8,7 +9,7 @@ interface WorkspaceCardProps {
   workspace: Workspace;
 }
 
-export default function WorkspaceCard({ workspace }: WorkspaceCardProps) {
+function WorkspaceCard({ workspace }: WorkspaceCardProps) {
   const progress = Math.min(100, Math.max(0, workspace.progress ?? 0));
 
   return (
@@ -46,3 +47,5 @@ export default function WorkspaceCard({ workspace }: WorkspaceCardProps) {
     </Link>
   );
 }
+
+export default memo(WorkspaceCard);

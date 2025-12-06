@@ -3,13 +3,13 @@
 
 import type { Message } from "@/types/message";
 import ChatMessage from "./ChatMessage";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, memo } from "react";
 
 interface MessageListProps {
   messages: Message[];
 }
 
-export default function MessageList({ messages }: MessageListProps) {
+function MessageList({ messages }: MessageListProps) {
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -35,3 +35,5 @@ export default function MessageList({ messages }: MessageListProps) {
     </div>
   );
 }
+
+export default memo(MessageList);
