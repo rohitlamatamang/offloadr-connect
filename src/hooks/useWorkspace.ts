@@ -40,6 +40,7 @@ export function useWorkspace(id: string | null): UseWorkspaceResult {
             description: data.description ?? "",
             progress: typeof data.progress === "number" ? data.progress : 0,
             clientId: data.clientId ?? "",
+            assignedStaffIds: Array.isArray(data.assignedStaffIds) ? data.assignedStaffIds : [],
             createdBy: data.createdBy ?? "",
             createdAt: data.createdAt?.toDate?.() ?? null,
           });
