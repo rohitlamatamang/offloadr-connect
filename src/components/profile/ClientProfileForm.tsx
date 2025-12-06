@@ -2,6 +2,7 @@
 "use client";
 
 import type { ClientType, ContactMethod, CommunicationFrequency } from "@/types/user";
+import { FormInput, FormSelect, FormSection } from "@/components/forms";
 
 interface ClientProfileFormProps {
   clientType: ClientType;
@@ -104,9 +105,7 @@ export default function ClientProfileForm({
   }
 
   return (
-    <div className="pt-4 border-t-2 border-gray-100">
-      <h3 className="text-sm font-bold text-gray-700 mb-4">Client Information</h3>
-      
+    <FormSection title="Client Information" variant="bordered">
       {/* Client Type Radio Buttons */}
       <div className="mb-4">
         <label className="block text-sm font-semibold text-gray-700 mb-3">Client Type</label>
@@ -147,77 +146,67 @@ export default function ClientProfileForm({
       </div>
 
       {clientType === "company" && (
-        <div className="mb-4">
-          <label className="block text-sm font-semibold text-gray-700 mb-2">Company Name</label>
-          <input
-            type="text"
-            value={companyName}
-            onChange={(e) => onCompanyNameChange(e.target.value)}
-            className="w-full rounded-xl border-2 border-gray-200 bg-white px-4 py-3 text-sm text-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-[#FF4D28]/30 focus:border-[#FF4D28] transition-all duration-200"
-            placeholder="Enter company name"
-            required={clientType === "company"}
-          />
-        </div>
+        <FormInput
+          label="Company Name"
+          type="text"
+          variant="rounded"
+          value={companyName}
+          onChange={(e) => onCompanyNameChange(e.target.value)}
+          placeholder="Enter company name"
+          required={clientType === "company"}
+        />
       )}
 
-      <div className="mb-4">
-        <label className="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
-        <input
-          type="tel"
-          value={phone}
-          onChange={(e) => onPhoneChange(e.target.value)}
-          className="w-full rounded-xl border-2 border-gray-200 bg-white px-4 py-3 text-sm text-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-[#FF4D28]/30 focus:border-[#FF4D28] transition-all duration-200"
-          placeholder="+1 (555) 123-4567"
-        />
-      </div>
+      <FormInput
+        label="Phone Number"
+        type="tel"
+        variant="rounded"
+        value={phone}
+        onChange={(e) => onPhoneChange(e.target.value)}
+        placeholder="+1 (555) 123-4567"
+      />
 
-      <div className="mb-4">
-        <label className="block text-sm font-semibold text-gray-700 mb-2">Time Zone</label>
-        <select
-          value={timeZone}
-          onChange={(e) => onTimeZoneChange(e.target.value)}
-          className="w-full rounded-xl border-2 border-gray-200 bg-white px-4 py-3 text-sm text-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-[#FF4D28]/30 focus:border-[#FF4D28] transition-all duration-200"
-        >
-          <option value="America/New_York">Eastern Time (ET)</option>
-          <option value="America/Chicago">Central Time (CT)</option>
-          <option value="America/Denver">Mountain Time (MT)</option>
-          <option value="America/Los_Angeles">Pacific Time (PT)</option>
-          <option value="America/Anchorage">Alaska Time (AKT)</option>
-          <option value="Pacific/Honolulu">Hawaii Time (HT)</option>
-          <option value="Europe/London">London (GMT)</option>
-          <option value="Europe/Paris">Paris (CET)</option>
-          <option value="Asia/Tokyo">Tokyo (JST)</option>
-          <option value="Asia/Shanghai">Shanghai (CST)</option>
-          <option value="Asia/Kolkata">India (IST)</option>
-          <option value="Australia/Sydney">Sydney (AEST)</option>
-        </select>
-      </div>
+      <FormSelect
+        label="Time Zone"
+        variant="rounded"
+        value={timeZone}
+        onChange={(e) => onTimeZoneChange(e.target.value)}
+      >
+        <option value="America/New_York">Eastern Time (ET)</option>
+        <option value="America/Chicago">Central Time (CT)</option>
+        <option value="America/Denver">Mountain Time (MT)</option>
+        <option value="America/Los_Angeles">Pacific Time (PT)</option>
+        <option value="America/Anchorage">Alaska Time (AKT)</option>
+        <option value="Pacific/Honolulu">Hawaii Time (HT)</option>
+        <option value="Europe/London">London (GMT)</option>
+        <option value="Europe/Paris">Paris (CET)</option>
+        <option value="Asia/Tokyo">Tokyo (JST)</option>
+        <option value="Asia/Shanghai">Shanghai (CST)</option>
+        <option value="Asia/Kolkata">India (IST)</option>
+        <option value="Australia/Sydney">Sydney (AEST)</option>
+      </FormSelect>
 
-      <div className="mb-4">
-        <label className="block text-sm font-semibold text-gray-700 mb-2">Preferred Contact Method</label>
-        <select
-          value={preferredContactMethod}
-          onChange={(e) => onContactMethodChange(e.target.value as ContactMethod)}
-          className="w-full rounded-xl border-2 border-gray-200 bg-white px-4 py-3 text-sm text-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-[#FF4D28]/30 focus:border-[#FF4D28] transition-all duration-200"
-        >
-          <option value="email">Email</option>
-          <option value="phone">Phone Call</option>
-          <option value="whatsapp">WhatsApp</option>
-        </select>
-      </div>
+      <FormSelect
+        label="Preferred Contact Method"
+        variant="rounded"
+        value={preferredContactMethod}
+        onChange={(e) => onContactMethodChange(e.target.value as ContactMethod)}
+      >
+        <option value="email">Email</option>
+        <option value="phone">Phone Call</option>
+        <option value="whatsapp">WhatsApp</option>
+      </FormSelect>
 
-      <div className="mb-4">
-        <label className="block text-sm font-semibold text-gray-700 mb-2">Communication Frequency</label>
-        <select
-          value={communicationFrequency}
-          onChange={(e) => onFrequencyChange(e.target.value as CommunicationFrequency)}
-          className="w-full rounded-xl border-2 border-gray-200 bg-white px-4 py-3 text-sm text-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-[#FF4D28]/30 focus:border-[#FF4D28] transition-all duration-200"
-        >
-          <option value="daily">Daily Updates</option>
-          <option value="weekly">Weekly Updates</option>
-          <option value="as-needed">As Needed</option>
-        </select>
-      </div>
-    </div>
+      <FormSelect
+        label="Communication Frequency"
+        variant="rounded"
+        value={communicationFrequency}
+        onChange={(e) => onFrequencyChange(e.target.value as CommunicationFrequency)}
+      >
+        <option value="daily">Daily Updates</option>
+        <option value="weekly">Weekly Updates</option>
+        <option value="as-needed">As Needed</option>
+      </FormSelect>
+    </FormSection>
   );
 }
