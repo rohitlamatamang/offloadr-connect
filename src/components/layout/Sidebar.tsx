@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
+import Logo from "./Logo";
 
 export interface SidebarProps {
   variant?: "desktop" | "mobile";
@@ -71,26 +72,7 @@ export default function Sidebar({
     <div className="flex h-full flex-col">
       {/* Logo section */}
       <div className="border-b border-gray-200 bg-white p-6">
-        <Link href="/dashboard" className="inline-flex items-center gap-3">
-          {/* Offloadr Logo SVG */}
-          <div className="flex h-10 w-10 flex-shrink-0">
-            <svg viewBox="0 0 600 600" className="h-full w-full">
-              <rect x="50" y="50" width="500" height="500" rx="100" fill="#1A1A1A"/>
-              <rect x="150" y="150" width="150" height="150" rx="20" fill="#FF4D28"/>
-              <rect x="320" y="150" width="130" height="130" rx="20" fill="#FFFFFF"/>
-              <rect x="150" y="320" width="130" height="130" rx="20" fill="#FFFFFF"/>
-              <rect x="300" y="300" width="150" height="150" rx="20" fill="#FF4D28"/>
-            </svg>
-          </div>
-          <div className="flex flex-col leading-tight">
-            <span className="text-base font-bold text-[#1A1A1A]">
-              Offloadr <span className="text-[#FF4D28]">Connect</span>
-            </span>
-            <span className="text-[11px] text-gray-600">
-              Client Communication Hub
-            </span>
-          </div>
-        </Link>
+        <Logo size="lg" href="/dashboard" />
       </div>
 
       {/* Navigation */}
